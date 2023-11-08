@@ -32,22 +32,16 @@ func initAuthRoute() {
 	AuthRouter := app.Group("/auth")
 	AuthRouter.Use(middleware.AuthMiddleware)
 
-	AuthRouter.Post("/upload", controller.UploadGameFile)
-	// AuthRouter.Get("", AuthController.Refresh)
-	// AuthRouter.Put("/profile", AuthController.EditProfile)
-	// AuthRouter.Put("/changePassword", AuthController.ChangePassword)
-	// AuthRouter.Get("/servers", ServerController.GetServers)
+	AuthRouter.Post("/upload", middleware.FileSizeLimitMiddleware(10*1024*1024), controller.UploadGameFile)
+	AuthRouter.Get("/users", controller.GetUsers)
+
 }
 
 func initUserRoute() {
-	// app.Get("/user", controller.GetUsers)
 	app.Post("/createUser", controller.Register)
 
 	app.Post("/login", controller.Login)
+	app.Post("/recaptcha", controller.GoogleVaild)
 	app.Get("/users", controller.GetUsers)
-	// app.Get("/user", controllers.GetUsers)
-	// app.Get("/user/:id", controllers.GetUser)
-	// app.Post("/user", controllers.CreateUser)
 	// app.Put("/user/:id", controllers.UpdateUser)
-	// app.Delete("/user/:id", controllers.DeleteUser)
 }

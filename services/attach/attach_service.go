@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 type AttachError struct {
@@ -18,12 +17,12 @@ func (c AttachError) Error() string {
 	return fmt.Sprintf("AttachError : %s", c.Message)
 }
 
-func GenerateFileName(filename string) string {
+func GenerateFileName(owner string, filename string) string {
 	extension := filepath.Ext(filename)
 	filename = strings.TrimSuffix(filename, extension)
 	filename = strings.Replace(filename, " ", "_", -1)
 	filename = strings.ToLower(filename)
-	filename = fmt.Sprintf("%s-%d%s", filename, time.Now().Unix(), extension)
+	filename = fmt.Sprintf("%s%s", owner, extension)
 	return filename
 }
 
@@ -41,7 +40,7 @@ func UploadFile(attach *models.Attach, files []*multipart.FileHeader, allowsuffi
 		}
 
 		//產生檔案名稱
-		filename := GenerateFileName(file.Filename)
+		filename := GenerateFileName(attach.Owner.Username, file.Filename)
 
 		//儲存檔案
 		saveLocation := os.Getenv("FILE_STORAGE_PATH")

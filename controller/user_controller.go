@@ -43,7 +43,9 @@ func UploadGameFile(c *fiber.Ctx) error {
 
 	allowsuffix := []string{".pdf"}
 
-	attach := models.Attach{}
+	attach := models.Attach{
+		Owner: user,
+	}
 
 	attach_service.UploadFile(&attach, files, allowsuffix)
 
@@ -54,7 +56,6 @@ func UploadGameFile(c *fiber.Ctx) error {
 
 	//生成檔案連結
 	url := utils.GetURL()
-	fmt.Println(">>>>>>>>>>", url)
 	url = url + attach.Filename
 
 	user.PdfPath = url
@@ -80,7 +81,9 @@ func UploadIDPhoto(c *fiber.Ctx) error {
 
 	allowsuffix := []string{".png", ".jpg", ".jpeg"}
 
-	attach := models.Attach{}
+	attach := models.Attach{
+		Owner: user,
+	}
 
 	attach_service.UploadFile(&attach, files, allowsuffix)
 
