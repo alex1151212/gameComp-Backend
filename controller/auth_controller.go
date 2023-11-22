@@ -64,7 +64,6 @@ func Register(c *fiber.Ctx) error {
 	username := req.Username
 	password := req.Password
 	email := req.Email
-	// school := req.School
 
 	if username == "" || password == "" || email == "" {
 		return utils.RespFail(c, "Username, Password, Email, School are required")
@@ -105,7 +104,6 @@ func Register(c *fiber.Ctx) error {
 func GoogleVaild(c *fiber.Ctx) error {
 	googlereCAPTCHARequest := new(googlereCAPTCHARequest)
 
-	// 解析請求的JSON主體
 	if err := c.BodyParser(googlereCAPTCHARequest); err != nil {
 		return err
 	}
@@ -116,7 +114,6 @@ func GoogleVaild(c *fiber.Ctx) error {
 		return err
 	}
 
-	// 建立URL查詢參數
 	query := req.URL.Query()
 	query.Add("secret", googlereCAPTCHARequest.Secret)
 	query.Add("response", googlereCAPTCHARequest.Response)

@@ -14,7 +14,6 @@ func main() {
 	if envErr != nil {
 		fmt.Println(envErr)
 	}
-
 	// fmt.Println("\nSwagger Docs: http://127.0.0.1:8888/swagger/index.html")
 	db.InitMySQL()
 	utils.InitJWTKey()

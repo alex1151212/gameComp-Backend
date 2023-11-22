@@ -19,7 +19,6 @@ func GetUsers(c *fiber.Ctx) error {
 	users := user_service.GetUsers()
 
 	return utils.RespOK(c, users, "Get Users Success")
-
 }
 
 func UploadGameFile(c *fiber.Ctx) error {
@@ -60,6 +59,7 @@ func UploadGameFile(c *fiber.Ctx) error {
 
 	user.PdfPath = url
 	user.VideoLink = videoLink
+	user.IsUpload = true
 	user.Save()
 
 	return utils.RespOK(c, user, "Upload PDF Success")
@@ -100,4 +100,24 @@ func UploadIDPhoto(c *fiber.Ctx) error {
 	user.Save()
 
 	return utils.RespOK(c, user, "Upload ID Photo Success")
+}
+
+func UpdateUser(c *fiber.Ctx) error {
+	user := c.Locals("Auth").(*models.User)
+	user.FindOne()
+
+	var req *models.User
+	if err := c.BodyParser(&req); err != nil {
+		utils.RespFail(c, err.Error())
+	}
+
+	user.Username = req.Username
+	user.Email = req.Email
+	user.Phone = req.Phone
+	if req.Password != "" {
+		user.Password = utils.Encode(req.Password)
+	}
+	user.Save()
+
+	return utils.RespOK(c, user, "Update User Success")
 }

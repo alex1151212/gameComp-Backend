@@ -11,8 +11,9 @@ type User struct {
 	Email    string `gorm:"type:varchar(255) NOT NULL; unique;" json:"email"`
 	Username string `gorm:"type:varchar(255) NOT NULL;" json:"username"`
 
+	Phone    string `gorm:"type:varchar(255) NOT NULL;" json:"phone"`
 	Password string `gorm:"type:varchar(255) NOT NULL;" json:"password"`
-	School   string `gorm:"type:varchar(255) NOT NULL;" json:"school"`
+	IsUpload bool   `gorm:"type:bool NOT NULL;" json:"isUpload"`
 
 	VideoLink string `gorm:"type:varchar(255) NOT NULL;" json:"videoLink"`
 	PdfPath   string `gorm:"type:varchar(255) NOT NULL ;" json:"pdfPath"`
@@ -33,6 +34,10 @@ func (model *User) Delete() *gorm.DB {
 func (model *User) FindOne() *gorm.DB {
 	return db.Instance.First(&model, &model)
 }
+func (model *User) Update() *gorm.DB {
+	return db.Instance.Updates(&model)
+}
+
 func (model *User) FindMany() *[]User {
 	var user []User
 	db.Instance.Find(&user, model)

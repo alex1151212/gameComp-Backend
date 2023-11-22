@@ -16,6 +16,8 @@ type AuthClaims struct {
 	UserId   uint   `json:"userId"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	IsUpload bool   `json:"isUpload"`
 	jwt.RegisteredClaims
 }
 
@@ -28,7 +30,8 @@ func GenerateToken(user models.User) (string, error) {
 		user.ID,
 		user.Username,
 		user.Email,
-
+		user.Phone,
+		user.IsUpload,
 		jwt.RegisteredClaims{
 
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(168 + time.Hour)),

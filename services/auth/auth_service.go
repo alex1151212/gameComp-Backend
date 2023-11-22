@@ -15,3 +15,4 @@ func Login(email string, hashedPassword string) bool {
 
 	return utils.Compare(user.Password, hashedPassword)
 }
+

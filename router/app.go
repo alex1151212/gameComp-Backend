@@ -12,7 +12,9 @@ import (
 var app *fiber.App
 
 func StartServer() {
-	app = fiber.New()
+	app = fiber.New(fiber.Config{
+		BodyLimit: 10 * 1024 * 1024 * 1024, // this is the default limit of 4MB
+	})
 	app.Use(middleware.CorsMiddleware)
 
 	host := os.Getenv("SERVER_HOST")
@@ -31,8 +33,9 @@ func StartServer() {
 func initAuthRoute() {
 	AuthRouter := app.Group("/auth")
 	AuthRouter.Use(middleware.AuthMiddleware)
-
-	AuthRouter.Post("/upload", middleware.FileSizeLimitMiddleware(10*1024*1024), controller.UploadGameFile)
+	// middleware.FileSizeLimitMiddleware(10*1024*1024), controller.UploadGameFile)
+	AuthRouter.Post("/upload", controller.UploadGameFile)
+	AuthRouter.Put("/user", controller.UpdateUser)
 	AuthRouter.Get("/users", controller.GetUsers)
 
 }

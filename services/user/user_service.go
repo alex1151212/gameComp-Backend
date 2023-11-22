@@ -10,6 +10,12 @@ func GetUsers() *[]models.User {
 	users := user.FindMany()
 	return users
 }
+func UpdateUser() *models.User {
+	var user models.User
+
+	user.FindOne()
+	return &user
+}
 
 func CreateUser(user *models.User) {
 	user.Create()
