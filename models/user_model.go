@@ -8,15 +8,31 @@ import (
 
 type User struct {
 	gorm.Model
-	Email    string `gorm:"type:varchar(255) NOT NULL; unique;" json:"email"`
+	Email    string `gorm:"type:varchar(255) NOT NULL;unique ;" json:"email"`
 	Username string `gorm:"type:varchar(255) NOT NULL;" json:"username"`
 
 	Phone    string `gorm:"type:varchar(255) NOT NULL;" json:"phone"`
 	Password string `gorm:"type:varchar(255) NOT NULL;" json:"password"`
-	IsUpload bool   `gorm:"type:bool NOT NULL;" json:"isUpload"`
 
-	VideoLink string `gorm:"type:varchar(255) NOT NULL;" json:"videoLink"`
-	PdfPath   string `gorm:"type:varchar(255) NOT NULL ;" json:"pdfPath"`
+	IsUpload bool `gorm:"type:bool NOT NULL;default:false;" json:"isUpload"`
+
+	TeamName              string       `gorm:"type:varchar(255) ;" json:"teamName"`
+	TeamMember            []TeamMember `gorm:"serializer:json" json:"teamMember"`
+	TeamTeacher           TeamTeacher  `gorm:"serializer:json" json:"teamTeacher"`
+	TeamSchoolCertificate []Attach     `gorm:"foreignKey:UserID ;" json:"teamSchoolCertificate"`
+
+	IsApplyTeam bool `gorm:"type:bool NOT NULL;default:false;" json:"isApplyTeam"`
+
+	WorkVideoLink string `gorm:"type:varchar(255) NOT NULL;" json:"workVideoLink"`
+	WorkPdf       Attach `gorm:"foreignKey:UserID ;" json:"workPdf"`
+}
+
+type TeamMember struct {
+	Name string
+}
+type TeamTeacher struct {
+	Name     string
+	JobTitle string
 }
 
 func (model *User) Save() *gorm.DB {
@@ -32,7 +48,7 @@ func (model *User) Delete() *gorm.DB {
 }
 
 func (model *User) FindOne() *gorm.DB {
-	return db.Instance.First(&model, &model)
+	return db.Instance.Where(model).First(&model)
 }
 func (model *User) Update() *gorm.DB {
 	return db.Instance.Updates(&model)

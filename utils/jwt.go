@@ -34,7 +34,7 @@ func GenerateToken(user models.User) (string, error) {
 		user.IsUpload,
 		jwt.RegisteredClaims{
 
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(168 + time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(168 * time.Hour)),
 			Issuer:    "IGD",
 		},
 	}
@@ -57,15 +57,18 @@ func ValidateToken(tokenString string) (*models.User, error) {
 		}
 		return jwtKey, nil
 	})
+
 	if err != nil {
 		return &models.User{}, err
 	}
 	if !token.Valid {
 		return &models.User{}, errors.New("invalid token")
 	}
+
 	user := models.User{
 		Email: claims.Email,
 	}
-	// user.Find()
+
+	user.FindOne()
 	return &user, nil
 }

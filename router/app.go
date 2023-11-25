@@ -20,6 +20,10 @@ func StartServer() {
 	host := os.Getenv("SERVER_HOST")
 	port := os.Getenv("SERVER_PORT")
 
+	staticPath := os.Getenv("FILE_STORAGE_PATH")
+	fmt.Println(staticPath)
+	app.Static("/", staticPath)
+
 	initUserRoute()
 	initAuthRoute()
 
@@ -36,7 +40,10 @@ func initAuthRoute() {
 	// middleware.FileSizeLimitMiddleware(10*1024*1024), controller.UploadGameFile)
 	AuthRouter.Post("/upload", controller.UploadGameFile)
 	AuthRouter.Put("/user", controller.UpdateUser)
+	AuthRouter.Post("/team", controller.UserApply)
 	AuthRouter.Get("/users", controller.GetUsers)
+
+	AuthRouter.Get("/profile", controller.GetUserProfile)
 
 }
 
