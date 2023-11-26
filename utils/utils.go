@@ -7,10 +7,10 @@ import (
 )
 
 func GetURL() string {
-	host := os.Getenv("SERVER_HOST")
-	port := os.Getenv("SERVER_PORT")
+	host := os.Getenv("STATIC_SERVER_HOST")
+	port := os.Getenv("STATIC_SERVER_PORT")
 
-	isSsl, err := strconv.ParseBool(os.Getenv("SSL"))
+	isSsl, err := strconv.ParseBool(os.Getenv("STATIC_SERVER_SSL"))
 	if err != nil {
 		panic(fmt.Sprintf("some error"))
 	}

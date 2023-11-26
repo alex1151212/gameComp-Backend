@@ -16,10 +16,10 @@ type User struct {
 
 	IsUpload bool `gorm:"type:bool NOT NULL;default:false;" json:"isUpload"`
 
-	TeamName              string       `gorm:"type:varchar(255) ;" json:"teamName"`
-	TeamMember            []TeamMember `gorm:"serializer:json" json:"teamMember"`
-	TeamTeacher           TeamTeacher  `gorm:"serializer:json" json:"teamTeacher"`
-	TeamSchoolCertificate []Attach     `gorm:"foreignKey:UserID ;" json:"teamSchoolCertificate"`
+	TeamName              string        `gorm:"type:varchar(255) ;" json:"teamName"`
+	TeamMember            []TeamMember  `gorm:"serializer:json" json:"teamMember"`
+	TeamTeacher           []TeamTeacher `gorm:"serializer:json" json:"teamTeacher"`
+	TeamSchoolCertificate []Attach      `gorm:"foreignKey:UserID ;" json:"teamSchoolCertificate"`
 
 	IsApplyTeam bool `gorm:"type:bool NOT NULL;default:false;" json:"isApplyTeam"`
 

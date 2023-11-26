@@ -139,3 +139,29 @@ func GoogleVaild(c *fiber.Ctx) error {
 	// 回傳JSON回應
 	return c.JSON(googlereCAPTCHAResponse)
 }
+
+func ResetPassword(c *fiber.Ctx) error {
+	var req *models.User
+	if err := c.BodyParser(&req); err != nil {
+		utils.RespFail(c, err.Error())
+	}
+	email := req.Email
+
+	if email == "" {
+		return utils.RespFail(c, "Email is required")
+	}
+
+	user := models.User{
+		Email: email,
+	}
+
+	user.FindOne()
+
+	if user.ID == 0 {
+		return utils.RespFail(c, "Email is not exist")
+	}
+
+	auth_service.ResetPassword(&user)
+
+	return utils.RespOK(c, nil, "Reset Password Success")
+}

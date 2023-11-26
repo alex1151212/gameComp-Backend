@@ -3,7 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"gameComp-Backend/models"
+	models "gameComp-Backend/models"
 	"os"
 	"time"
 

@@ -20,9 +20,10 @@ type ProfileRes struct {
 	Username string `json:"username"`
 	Phone    string `json:"phone"`
 
-	TeamName              string              `json:"teamName"`
-	TeamMember            []models.TeamMember `json:"teamMember"`
-	TeamSchoolCertificate []string            `json:"teamSchoolCertificate"`
+	TeamName              string               `json:"teamName"`
+	TeamMember            []models.TeamMember  `json:"teamMember"`
+	TeamTeacher           []models.TeamTeacher `json:"teamTeacher"`
+	TeamSchoolCertificate []string             `json:"teamSchoolCertificate"`
 
 	WorkVideoLink string `json:"workVideoLink"`
 	WorkPdf       string `json:"workPdf"`
@@ -91,6 +92,10 @@ func UserApply(c *fiber.Ctx) error {
 	if teamName == "" {
 		return utils.RespFail(c, "TeamName is empty")
 	}
+	teamTeacher := c.FormValue("teamTeacher", "")
+	if teamTeacher == "" {
+		return utils.RespFail(c, "TeamTeacher is empty")
+	}
 	teamMember := c.FormValue("teamMember", "")
 	if teamMember == "" {
 		return utils.RespFail(c, "TeamMember is empty")
@@ -127,9 +132,13 @@ func UserApply(c *fiber.Ctx) error {
 		user.TeamSchoolCertificate = append(user.TeamSchoolCertificate, attach)
 	}
 
+	err = json.Unmarshal([]byte(teamTeacher), &user.TeamTeacher)
+	if err != nil {
+		return utils.RespFail(c, "Failed to unmarshal teamTeacher to JSON")
+	}
 	err = json.Unmarshal([]byte(teamMember), &user.TeamMember)
 	if err != nil {
-		return utils.RespFail(c, "Failed to unmarshal user to JSON")
+		return utils.RespFail(c, "Failed to unmarshal teamMember to JSON")
 	}
 
 	user.TeamName = teamName
@@ -189,6 +198,7 @@ func GetUserProfile(c *fiber.Ctx) error {
 		Phone:    user.Phone,
 
 		TeamName:              user.TeamName,
+		TeamTeacher:           user.TeamTeacher,
 		TeamMember:            user.TeamMember,
 		TeamSchoolCertificate: schoolCertificateUrl,
 		IsApplyTeam:           user.IsApplyTeam,

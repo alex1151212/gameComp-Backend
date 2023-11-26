@@ -26,8 +26,10 @@ func StartServer() {
 
 	initUserRoute()
 	initAuthRoute()
+	initUtilsRoute()
 
 	fmt.Println("🟢 WebServer start Success.")
+
 	err := app.Listen(host + ":" + port)
 	if err != nil {
 		return
@@ -54,4 +56,9 @@ func initUserRoute() {
 	app.Post("/recaptcha", controller.GoogleVaild)
 	app.Get("/users", controller.GetUsers)
 	// app.Put("/user/:id", controllers.UpdateUser)
+}
+
+func initUtilsRoute() {
+	UtilsRouter := app.Group("/utils")
+	UtilsRouter.Post("/reset/password", controller.ResetPassword)
 }
