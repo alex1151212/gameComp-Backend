@@ -158,7 +158,6 @@ func UpdateUser(c *fiber.Ctx) error {
 		utils.RespFail(c, err.Error())
 	}
 
-	user.Username = req.Username
 	user.Email = req.Email
 	user.Phone = req.Phone
 	if req.Password != "" {
@@ -193,9 +192,8 @@ func GetUserProfile(c *fiber.Ctx) error {
 	}
 
 	resp := ProfileRes{
-		Email:    user.Email,
-		Username: user.Username,
-		Phone:    user.Phone,
+		Email: user.Email,
+		Phone: user.Phone,
 
 		TeamName:              user.TeamName,
 		TeamTeacher:           user.TeamTeacher,

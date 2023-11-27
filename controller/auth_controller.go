@@ -35,7 +35,7 @@ func Login(c *fiber.Ctx) error {
 	password := req.Password
 
 	if email == "" || password == "" {
-		return utils.RespFail(c, "Username and Password are required")
+		return utils.RespFail(c, "Email and Password are required")
 	}
 
 	user := models.User{
@@ -44,7 +44,7 @@ func Login(c *fiber.Ctx) error {
 
 	if !auth_service.Login(email, password) {
 		fmt.Println(!auth_service.Login(email, password))
-		return utils.RespUnauthorized(c, "Username or Password is wrong")
+		return utils.RespUnauthorized(c, "Email or Password is wrong")
 	}
 	user.FindOne()
 	token, _ := utils.GenerateToken(user)
@@ -61,12 +61,11 @@ func Register(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		utils.RespFail(c, err.Error())
 	}
-	username := req.Username
 	password := req.Password
 	email := req.Email
 
-	if username == "" || password == "" || email == "" {
-		return utils.RespFail(c, "Username, Password, Email, School are required")
+	if password == "" || email == "" {
+		return utils.RespFail(c, "Password, Email are required")
 	}
 	hashedPassword := utils.Encode(password)
 	if hashedPassword == "" {
@@ -84,7 +83,6 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	user = models.User{
-		Username: username,
 		Email:    email,
 		Password: hashedPassword,
 	}
