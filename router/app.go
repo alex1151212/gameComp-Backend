@@ -16,7 +16,7 @@ var app *fiber.App
 func StartServer() {
 
 	app = fiber.New(fiber.Config{
-		BodyLimit: 10 * 1024 * 1024 * 1024, // this is the default limit of 4MB
+		BodyLimit: 10 * 1024 * 1024 * 1024,
 	})
 
 	file, err := os.OpenFile("./logger.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)

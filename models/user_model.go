@@ -8,15 +8,14 @@ import (
 
 type User struct {
 	gorm.Model
-	Email    string `gorm:"type:varchar(255) NOT NULL;unique ;" json:"email"`
-	Username string `gorm:"type:varchar(255) NOT NULL;" json:"username"`
+	Email string `gorm:"type:varchar(255) NOT NULL;unique ;" json:"email"`
 
 	Phone    string `gorm:"type:varchar(255) NOT NULL;" json:"phone"`
 	Password string `gorm:"type:varchar(255) NOT NULL;" json:"password"`
 
 	IsUpload bool `gorm:"type:bool NOT NULL;default:false;" json:"isUpload"`
 
-	TeamName              string        `gorm:"type:varchar(255) ;" json:"teamName"`
+	TeamName              string        `gorm:"type:varchar(255) NOT NULL;unique ;" json:"teamName"`
 	TeamMember            []TeamMember  `gorm:"serializer:json" json:"teamMember"`
 	TeamTeacher           []TeamTeacher `gorm:"serializer:json" json:"teamTeacher"`
 	TeamSchoolCertificate []Attach      `gorm:"foreignKey:UserID ;" json:"teamSchoolCertificate"`

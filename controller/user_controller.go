@@ -16,9 +16,8 @@ type RegisterSuccessRes struct {
 }
 
 type ProfileRes struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Phone    string `json:"phone"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
 
 	TeamName              string               `json:"teamName"`
 	TeamMember            []models.TeamMember  `json:"teamMember"`
@@ -92,6 +91,13 @@ func UserApply(c *fiber.Ctx) error {
 	if teamName == "" {
 		return utils.RespFail(c, "TeamName is empty")
 	}
+
+	uesrTeamName := models.User{TeamName: teamName}
+	uesrTeamName.FindOne()
+	if uesrTeamName.ID != 0 {
+		return utils.RespFail(c, "TeamName is exist")
+	}
+
 	teamTeacher := c.FormValue("teamTeacher", "")
 	if teamTeacher == "" {
 		return utils.RespFail(c, "TeamTeacher is empty")
