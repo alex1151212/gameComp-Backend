@@ -4,17 +4,31 @@ import (
 	"fmt"
 	controller "gameComp-Backend/controller"
 	middleware "gameComp-Backend/middlewares"
+	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 var app *fiber.App
 
 func StartServer() {
+
 	app = fiber.New(fiber.Config{
 		BodyLimit: 10 * 1024 * 1024 * 1024, // this is the default limit of 4MB
 	})
+
+	file, err := os.OpenFile("./logger.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	app.Use(logger.New(logger.Config{
+		Output:     file,
+		Format:     "[${ip}]:${port} ${status} - ${method} ${path}\n",
+		TimeFormat: "02-Jan-2006",
+	}))
+
 	app.Use(middleware.CorsMiddleware)
 
 	host := os.Getenv("SERVER_HOST")
@@ -30,7 +44,7 @@ func StartServer() {
 
 	fmt.Println("🟢 WebServer start Success.")
 
-	err := app.Listen(host + ":" + port)
+	err = app.Listen(host + ":" + port)
 	if err != nil {
 		return
 	}

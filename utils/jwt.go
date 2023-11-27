@@ -14,7 +14,6 @@ var jwtKey = []byte("")
 
 type AuthClaims struct {
 	UserId   uint   `json:"userId"`
-	Username string `json:"username"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	IsUpload bool   `json:"isUpload"`
@@ -28,7 +27,6 @@ func InitJWTKey() {
 func GenerateToken(user models.User) (string, error) {
 	claims := AuthClaims{
 		user.ID,
-		user.Username,
 		user.Email,
 		user.Phone,
 		user.IsUpload,
