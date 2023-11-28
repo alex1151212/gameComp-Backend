@@ -11,15 +11,13 @@ import (
 func AuthMiddleware(c *fiber.Ctx) error {
 	token := c.Get("Authorization")
 	if !strings.HasPrefix(token, "Bearer ") {
-		utils.RespUnauthorized(c, "Unauthorized")
+		return utils.RespUnauthorized(c, "Unauthorized")
 	}
 	fmt.Println(token)
 	user, err := utils.ValidateToken(strings.Replace(token, "Bearer ", "", 1))
 	if err != nil {
-		utils.RespUnauthorized(c, err.Error())
+		return utils.RespUnauthorized(c, err.Error())
 	}
-
-	fmt.Println(err)
 
 	c.Locals("Auth", user)
 	return c.Next()
