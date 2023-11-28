@@ -42,6 +42,8 @@ func UploadGameFile(c *fiber.Ctx) error {
 	user := c.Locals("Auth").(*models.User)
 	user.FindOne()
 
+	team := user_service.GetUserTeam(user)
+
 	videoLink := c.FormValue("workVideoLink", "")
 	if videoLink == "" {
 		return utils.RespFail(c, "Upload VideoLink Fail")
@@ -62,7 +64,7 @@ func UploadGameFile(c *fiber.Ctx) error {
 	attachPdf := models.Attach{UserID: user.ID}
 
 	if len(files) > 0 {
-		attach_service.UploadFile(user, &attachPdf, files[0], "workPdf", false, allowsuffix)
+		attach_service.UploadFile(&team, &attachPdf, files[0], "workPdf", false, allowsuffix)
 
 		err = c.SaveFile(files[0], fmt.Sprintf("%s/%s", attachPdf.SaveLocation, attachPdf.Filename))
 		if err != nil {
@@ -73,20 +75,20 @@ func UploadGameFile(c *fiber.Ctx) error {
 		url := utils.GetURL()
 		url = url + attachPdf.Filename
 
-		user.Team.WorkPdf = attachPdf
-		user.Team.WorkVideoLink = videoLink
-		user.Team.IsUpload = true
+		team.WorkPdf = attachPdf
+		team.WorkVideoLink = videoLink
+		team.IsUpload = true
 	}
 
-	user.Save()
+	team.Save()
 
-	return utils.RespOK(c, user, "Upload PDF Success")
+	return utils.RespOK(c, team, "Upload PDF Success")
 }
 
 func UserApply(ctx *fiber.Ctx) error {
 	user := ctx.Locals("Auth").(*models.User)
-	// user.FindOne()
 
+	team := user_service.GetUserTeam(user)
 	//prepare apply data
 	teamName := ctx.FormValue("teamName", "")
 	if teamName == "" {
@@ -118,7 +120,7 @@ func UserApply(ctx *fiber.Ctx) error {
 	for _, file := range files {
 
 		attach := models.Attach{UserID: user.ID}
-		attach_service.UploadFile(user, &attach, file, "teamSchoolCertificate", true, allowsuffix)
+		attach_service.UploadFile(&team, &attach, file, "teamSchoolCertificate", true, allowsuffix)
 
 		err = ctx.SaveFile(file, fmt.Sprintf("%s/%s", attach.SaveLocation, attach.Filename))
 		if err != nil {
@@ -175,6 +177,7 @@ func GetUserProfile(c *fiber.Ctx) error {
 
 	attachSchoolCertificate := attach_service.GetAttachesWithConds(models.Attach{UserID: user.ID, Type: "teamSchoolCertificate"})
 	attachWorkPdf := attach_service.GetAttachesWithConds(models.Attach{UserID: user.ID, Type: "workPdf"})
+	team := user_service.GetUserTeam(user)
 
 	var schoolCertificateUrl = []string{}
 	for _, attach := range *attachSchoolCertificate {
@@ -192,14 +195,14 @@ func GetUserProfile(c *fiber.Ctx) error {
 		Email: user.Email,
 		Phone: user.Phone,
 
-		TeamName:              user.Team.TeamName,
-		TeamTeacher:           user.Team.TeamTeacher,
-		TeamMember:            user.Team.TeamMember,
+		TeamName:              team.TeamName,
+		TeamTeacher:           team.TeamTeacher,
+		TeamMember:            team.TeamMember,
 		TeamSchoolCertificate: schoolCertificateUrl,
-		IsApplyTeam:           user.Team.IsApplyTeam,
-		IsUpload:              user.Team.IsUpload,
+		IsApplyTeam:           team.IsApplyTeam,
+		IsUpload:              team.IsUpload,
 
-		WorkVideoLink: user.Team.WorkVideoLink,
+		WorkVideoLink: team.WorkVideoLink,
 		WorkPdf:       workPdfUrl,
 	}
 

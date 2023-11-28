@@ -21,3 +21,11 @@ func UpdateUser() *models.User {
 func CreateUser(user *models.User) error {
 	return user.Create().Error
 }
+
+func GetUserTeam(user *models.User) models.Team {
+	team := models.Team{
+		UserID: user.ID,
+	}
+	team.FindOne()
+	return team
+}

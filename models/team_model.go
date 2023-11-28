@@ -40,3 +40,11 @@ func (model *Team) Create() *gorm.DB {
 func (model *Team) Update() *gorm.DB {
 	return db.Instance.Updates(&model)
 }
+
+func (model *Team) Delete() *gorm.DB {
+	return db.Instance.Delete(&model)
+}
+
+func (model *Team) FindOne() *gorm.DB {
+	return db.Instance.Where(model).First(&model)
+}

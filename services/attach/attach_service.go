@@ -33,7 +33,7 @@ func GenerateFileName(owner string, filename string, allowMulti bool) string {
 	return filename
 }
 
-func UploadFile(owner *models.User, attach *models.Attach, file *multipart.FileHeader, attachType string, allowMulti bool, allowsuffix []string) error {
+func UploadFile(team *models.Team, attach *models.Attach, file *multipart.FileHeader, attachType string, allowMulti bool, allowsuffix []string) error {
 	// Check if the file type is allowed
 	isAllowed := false
 	for _, s := range allowsuffix {
@@ -49,7 +49,7 @@ func UploadFile(owner *models.User, attach *models.Attach, file *multipart.FileH
 	}
 
 	// Generate file name
-	filename := GenerateFileName(owner.Team.TeamName, file.Filename, allowMulti)
+	filename := GenerateFileName(team.TeamName, file.Filename, allowMulti)
 
 	// Save file
 	saveLocation := os.Getenv("FILE_STORAGE_PATH")
