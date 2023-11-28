@@ -28,7 +28,9 @@ func (model *User) Delete() *gorm.DB {
 }
 
 func (model *User) FindOne() *gorm.DB {
-	return db.Instance.Where(model).First(&model)
+	tx := db.Instance.Where(model).First(&model)
+	model.Password = ""
+	return tx
 }
 func (model *User) Update() *gorm.DB {
 	return db.Instance.Updates(&model)

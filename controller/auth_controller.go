@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"gameComp-Backend/models"
 	auth_service "gameComp-Backend/services/auth"
 	user_service "gameComp-Backend/services/user"
@@ -33,21 +32,21 @@ func Login(c *fiber.Ctx) error {
 	}
 	email := req.Email
 	password := req.Password
-
 	if email == "" || password == "" {
 		return utils.RespFail(c, "Email and Password are required")
 	}
 
-	user := models.User{
-		Email: email,
-	}
+	hashedPassword := utils.Md5(password)
 
-	if !auth_service.Login(email, password) {
-		fmt.Println(!auth_service.Login(email, password))
+	user := auth_service.Login(email, hashedPassword)
+	if user == nil {
 		return utils.RespUnauthorized(c, "Email or Password is wrong")
 	}
-	user.FindOne()
-	token, _ := utils.GenerateToken(user)
+
+	token, err := utils.GenerateToken(*user)
+	if err != nil {
+		return utils.RespFail(c, "Generate Token Fail")
+	}
 
 	resp := RegisterSuccessRes{
 		Token: token,
@@ -67,7 +66,7 @@ func Register(c *fiber.Ctx) error {
 	if password == "" || email == "" {
 		return utils.RespFail(c, "Password, Email are required")
 	}
-	hashedPassword := utils.Encode(password)
+	hashedPassword := utils.Md5(password)
 	if hashedPassword == "" {
 		return utils.RespFail(c, "Password Hash Failed")
 	}
@@ -87,9 +86,14 @@ func Register(c *fiber.Ctx) error {
 		Password: hashedPassword,
 	}
 
-	user_service.CreateUser(&user)
+	if err := user_service.CreateUser(&user); err != nil {
+		return utils.RespFail(c, "failed to create user")
+	}
 
-	token, _ := utils.GenerateToken(user)
+	token, err := utils.GenerateToken(user)
+	if err != nil {
+		return utils.RespFail(c, "Generate Token Fail")
+	}
 
 	resp := RegisterSuccessRes{
 		Token: token,

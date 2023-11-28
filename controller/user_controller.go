@@ -158,7 +158,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	user.Email = req.Email
 	user.Phone = req.Phone
 	if req.Password != "" {
-		user.Password = utils.Encode(req.Password)
+		user.Password = utils.Md5(req.Password)
 	}
 
 	if err := user.Save().Error; err != nil {

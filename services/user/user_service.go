@@ -18,6 +18,6 @@ func UpdateUser() *models.User {
 	return &user
 }
 
-func CreateUser(user *models.User) {
-	user.Create()
+func CreateUser(user *models.User) error {
+	return user.Create().Error
 }
