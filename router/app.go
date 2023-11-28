@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 var app *fiber.App
@@ -23,11 +24,17 @@ func StartServer() {
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
+
 	app.Use(logger.New(logger.Config{
 		Output:     file,
 		Format:     "[${ip}]:${port} ${status} - ${method} ${path}\n",
 		TimeFormat: "02-Jan-2006",
 	}))
+	app.Use(recover.New(
+		recover.Config{
+			EnableStackTrace: true,
+		},
+	))
 
 	app.Use(middleware.CorsMiddleware)
 
