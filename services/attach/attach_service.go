@@ -25,7 +25,7 @@ func GenerateFileName(owner string, filename string, allowMulti bool) string {
 	filename = strings.ToLower(filename)
 	timestamp := time.Now().Unix()
 	if allowMulti {
-		filename = fmt.Sprintf("%s_%d%s", filename, timestamp, extension)
+		filename = fmt.Sprintf("%s_%s_%d%s", owner, filename, timestamp, extension)
 	} else {
 		filename = fmt.Sprintf("%s_%s", owner, extension)
 	}
