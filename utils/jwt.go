@@ -29,7 +29,7 @@ func GenerateToken(user models.User) (string, error) {
 		user.ID,
 		user.Email,
 		user.Phone,
-		user.IsUpload,
+		user.Team.IsUpload,
 		jwt.RegisteredClaims{
 
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(168 * time.Hour)),

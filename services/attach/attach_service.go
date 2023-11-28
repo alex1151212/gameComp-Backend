@@ -49,7 +49,7 @@ func UploadFile(owner *models.User, attach *models.Attach, file *multipart.FileH
 	}
 
 	// Generate file name
-	filename := GenerateFileName(owner.TeamName, file.Filename, allowMulti)
+	filename := GenerateFileName(owner.Team.TeamName, file.Filename, allowMulti)
 
 	// Save file
 	saveLocation := os.Getenv("FILE_STORAGE_PATH")

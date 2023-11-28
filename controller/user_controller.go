@@ -73,9 +73,9 @@ func UploadGameFile(c *fiber.Ctx) error {
 		url := utils.GetURL()
 		url = url + attachPdf.Filename
 
-		user.WorkPdf = attachPdf
-		user.WorkVideoLink = videoLink
-		user.IsUpload = true
+		user.Team.WorkPdf = attachPdf
+		user.Team.WorkVideoLink = videoLink
+		user.Team.IsUpload = true
 	}
 
 	user.Save()
@@ -83,76 +83,67 @@ func UploadGameFile(c *fiber.Ctx) error {
 	return utils.RespOK(c, user, "Upload PDF Success")
 }
 
-func UserApply(c *fiber.Ctx) error {
-	user := c.Locals("Auth").(*models.User)
-	user.FindOne()
+func UserApply(ctx *fiber.Ctx) error {
+	user := ctx.Locals("Auth").(*models.User)
+	// user.FindOne()
 
-	teamName := c.FormValue("teamName", "")
+	//prepare apply data
+	teamName := ctx.FormValue("teamName", "")
 	if teamName == "" {
-		return utils.RespFail(c, "TeamName is empty")
+		return utils.RespFail(ctx, "TeamName is empty")
 	}
-
-	uesrTeamName := models.User{TeamName: teamName}
-	uesrTeamName.FindOne()
-	if uesrTeamName.ID != 0 {
-		return utils.RespFail(c, "TeamName is exist")
-	}
-
-	teamTeacher := c.FormValue("teamTeacher", "")
+	teamTeacher := ctx.FormValue("teamTeacher", "")
 	if teamTeacher == "" {
-		return utils.RespFail(c, "TeamTeacher is empty")
+		return utils.RespFail(ctx, "TeamTeacher is empty")
 	}
-	teamMember := c.FormValue("teamMember", "")
+	teamMember := ctx.FormValue("teamMember", "")
 	if teamMember == "" {
-		return utils.RespFail(c, "TeamMember is empty")
+		return utils.RespFail(ctx, "TeamMember is empty")
 	}
-
-	form, err := c.MultipartForm()
+	form, err := ctx.MultipartForm()
 	if err != nil {
-		return utils.RespFail(c, "Upload ID Photo Fail")
+		return utils.RespFail(ctx, "Upload ID Photo Fail")
 	}
 
 	files := form.File["teamSchoolCertificate[]"]
-	if len(files) < 1 {
-		return utils.RespFail(c, "TeamSchoolCertificate is empty")
+	//TODO Remove, it could be upload latter
+	// if len(files) < 1 {
+	// return utils.RespFail(ctx, "TeamSchoolCertificate is empty")
+	// }
+	if len(files) != 0 {
+		user.Team.IsApplyTeam = true
 	}
-	allowsuffix := []string{".png", ".jpg", ".jpeg"}
+	allowsuffix := []string{".png", ".jpg", ".jpeg", ".pdf"}
 
 	for _, file := range files {
 
 		attach := models.Attach{UserID: user.ID}
-
 		attach_service.UploadFile(user, &attach, file, "teamSchoolCertificate", true, allowsuffix)
 
-		err = c.SaveFile(file, fmt.Sprintf("%s/%s", attach.SaveLocation, attach.Filename))
-
+		err = ctx.SaveFile(file, fmt.Sprintf("%s/%s", attach.SaveLocation, attach.Filename))
 		if err != nil {
-			return utils.RespFail(c, "Upload ID Photo Fail")
+			return utils.RespFail(ctx, "Upload ID Photo Fail")
 		}
 
 		//生成檔案連結
 		url := utils.GetURL()
-
 		url = url + attach.Filename
-
-		user.TeamSchoolCertificate = append(user.TeamSchoolCertificate, attach)
+		user.Team.TeamSchoolCertificate = append(user.Team.TeamSchoolCertificate, attach)
 	}
 
-	err = json.Unmarshal([]byte(teamTeacher), &user.TeamTeacher)
+	err = json.Unmarshal([]byte(teamTeacher), &user.Team.TeamTeacher)
 	if err != nil {
-		return utils.RespFail(c, "Failed to unmarshal teamTeacher to JSON")
+		return utils.RespFail(ctx, "Failed to unmarshal teamTeacher to JSON")
 	}
-	err = json.Unmarshal([]byte(teamMember), &user.TeamMember)
+	err = json.Unmarshal([]byte(teamMember), &user.Team.TeamMember)
 	if err != nil {
-		return utils.RespFail(c, "Failed to unmarshal teamMember to JSON")
+		return utils.RespFail(ctx, "Failed to unmarshal teamMember to JSON")
 	}
 
-	user.TeamName = teamName
-	user.IsApplyTeam = true
-
+	user.Team.TeamName = teamName
 	user.Save()
 
-	return utils.RespOK(c, user, "User Apply Success")
+	return utils.RespOK(ctx, user, "User Apply Success")
 }
 
 func UpdateUser(c *fiber.Ctx) error {
@@ -201,14 +192,14 @@ func GetUserProfile(c *fiber.Ctx) error {
 		Email: user.Email,
 		Phone: user.Phone,
 
-		TeamName:              user.TeamName,
-		TeamTeacher:           user.TeamTeacher,
-		TeamMember:            user.TeamMember,
+		TeamName:              user.Team.TeamName,
+		TeamTeacher:           user.Team.TeamTeacher,
+		TeamMember:            user.Team.TeamMember,
 		TeamSchoolCertificate: schoolCertificateUrl,
-		IsApplyTeam:           user.IsApplyTeam,
-		IsUpload:              user.IsUpload,
+		IsApplyTeam:           user.Team.IsApplyTeam,
+		IsUpload:              user.Team.IsUpload,
 
-		WorkVideoLink: user.WorkVideoLink,
+		WorkVideoLink: user.Team.WorkVideoLink,
 		WorkPdf:       workPdfUrl,
 	}
 
