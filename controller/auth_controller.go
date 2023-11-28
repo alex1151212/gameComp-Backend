@@ -8,6 +8,7 @@ import (
 	"gameComp-Backend/utils"
 	"io"
 	"net/http"
+	"net/mail"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -62,6 +63,12 @@ func Register(c *fiber.Ctx) error {
 	}
 	password := req.Password
 	email := req.Email
+
+	// doing format validate in email
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return utils.RespFail(c, "Email format is wrong")
+	}
 
 	if password == "" || email == "" {
 		return utils.RespFail(c, "Password, Email are required")
