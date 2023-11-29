@@ -128,6 +128,7 @@ func UserApply(ctx *fiber.Ctx) error {
 		}
 		userTeam.TeamName = teamName
 		userTeam.UUID = uuid.New().String()
+		userTeam.UserID = user.ID
 		tx := userTeam.Create()
 		if tx.Error != nil {
 			var dup *mysql.MySQLError
