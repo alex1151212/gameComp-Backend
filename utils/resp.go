@@ -35,6 +35,10 @@ func RespUnauthorized(c *fiber.Ctx, msg string) error {
 	return Resp(c, http.StatusUnauthorized, -1, nil, msg)
 }
 
+func RespImRobot(c *fiber.Ctx) error {
+	return Resp(c, http.StatusForbidden, -1, nil, "bibibi engine oil is yuck")
+}
+
 func RespOK(c *fiber.Ctx, data interface{}, msg string) error {
 	return Resp(c, http.StatusOK, 0, data, msg)
 }

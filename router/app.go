@@ -45,9 +45,30 @@ func StartServer() {
 	fmt.Println(staticPath)
 	app.Static("/", staticPath)
 
-	initUserRoute()
-	initAuthRoute()
-	initUtilsRoute()
+	{
+		AuthRouter := app.Group("/auth")
+		AuthRouter.Use(middleware.AuthMiddleware)
+		middleware.FileSizeLimitMiddleware(100)
+		AuthRouter.Get("/profile", controller.GetUserProfile)
+
+		AuthRouter.Use(middleware.Recaptcha)
+		AuthRouter.Put("/user", controller.UpdateUser)
+		AuthRouter.Post("/upload", controller.UploadGameFile)
+		AuthRouter.Post("/team", controller.UserApply)
+	}
+
+	{
+		UserRouter := app.Group("")
+		UserRouter.Post("/recaptcha", controller.GoogleVaild)
+
+		UserRouter.Use(middleware.Recaptcha)
+		UserRouter.Post("/createUser", controller.Register)
+		UserRouter.Post("/login", controller.Login)
+	}
+
+	// initUserRoute()
+	// initAuthRoute()
+	// initUtilsRoute()
 
 	fmt.Println("🟢 WebServer start Success.")
 
@@ -61,22 +82,21 @@ func initAuthRoute() {
 	AuthRouter := app.Group("/auth")
 	AuthRouter.Use(middleware.AuthMiddleware)
 	// middleware.FileSizeLimitMiddleware(10*1024*1024), controller.UploadGameFile)
+	AuthRouter.Get("/profile", controller.GetUserProfile)
+
+	AuthRouter.Use(middleware.Recaptcha)
 	AuthRouter.Post("/upload", controller.UploadGameFile)
 	AuthRouter.Put("/user", controller.UpdateUser)
 	AuthRouter.Post("/team", controller.UserApply)
-	AuthRouter.Get("/users", controller.GetUsers)
-
-	AuthRouter.Get("/profile", controller.GetUserProfile)
-
 }
 
 func initUserRoute() {
-	app.Post("/createUser", controller.Register)
 
-	app.Post("/login", controller.Login)
 	app.Post("/recaptcha", controller.GoogleVaild)
-	app.Get("/users", controller.GetUsers)
-	// app.Put("/user/:id", controllers.UpdateUser)
+
+	app.Use(middleware.Recaptcha)
+	app.Post("/createUser", controller.Register)
+	app.Post("/login", controller.Login)
 }
 
 func initUtilsRoute() {
