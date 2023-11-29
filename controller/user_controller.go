@@ -146,7 +146,10 @@ func UserApply(ctx *fiber.Ctx) error {
 		user.Team.TeamSchoolCertificate = append(user.Team.TeamSchoolCertificate, attach)
 	}
 
-	user.Save()
+	err = user.Update().Error
+	if err != nil {
+		return utils.RespFail(ctx, "something wrong in server")
+	}
 	user.FindOne()
 
 	return utils.RespOK(ctx, user, "User Apply Success")
