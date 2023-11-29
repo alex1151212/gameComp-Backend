@@ -28,7 +28,7 @@ func (model *User) Delete() *gorm.DB {
 }
 
 func (model *User) FindOne() *gorm.DB {
-	tx := db.Instance.Where(model).First(&model)
+	tx := db.Instance.Preload("Team").Where(model).First(&model)
 	model.Password = ""
 	return tx
 }

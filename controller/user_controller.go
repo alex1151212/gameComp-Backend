@@ -9,6 +9,7 @@ import (
 	"gameComp-Backend/utils"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type RegisterSuccessRes struct {
@@ -88,20 +89,32 @@ func UploadGameFile(c *fiber.Ctx) error {
 func UserApply(ctx *fiber.Ctx) error {
 	user := ctx.Locals("Auth").(*models.User)
 
-	team := user_service.GetUserTeam(user)
-	//prepare apply data
-	teamName := ctx.FormValue("teamName", "")
-	if teamName == "" {
-		return utils.RespFail(ctx, "TeamName is empty")
+	//the team is not exist
+	if user.Team.ID == 0 {
+		teamName := ctx.FormValue("teamName", "")
+		if teamName == "" {
+			return utils.RespFail(ctx, "TeamName is empty")
+		}
+		teamTeacher := ctx.FormValue("teamTeacher", "")
+		if teamTeacher == "" {
+			return utils.RespFail(ctx, "TeamTeacher is empty")
+		}
+		teamMember := ctx.FormValue("teamMember", "")
+		if teamMember == "" {
+			return utils.RespFail(ctx, "TeamMember is empty")
+		}
+		err := json.Unmarshal([]byte(teamTeacher), &user.Team.TeamTeacher)
+		if err != nil {
+			return utils.RespFail(ctx, "Failed to unmarshal teamTeacher to JSON")
+		}
+		err = json.Unmarshal([]byte(teamMember), &user.Team.TeamMember)
+		if err != nil {
+			return utils.RespFail(ctx, "Failed to unmarshal teamMember to JSON")
+		}
+		user.Team.TeamName = teamName
+		user.Team.UUID = uuid.New().String()
 	}
-	teamTeacher := ctx.FormValue("teamTeacher", "")
-	if teamTeacher == "" {
-		return utils.RespFail(ctx, "TeamTeacher is empty")
-	}
-	teamMember := ctx.FormValue("teamMember", "")
-	if teamMember == "" {
-		return utils.RespFail(ctx, "TeamMember is empty")
-	}
+
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		return utils.RespFail(ctx, "Upload ID Photo Fail")
@@ -120,7 +133,7 @@ func UserApply(ctx *fiber.Ctx) error {
 	for _, file := range files {
 
 		attach := models.Attach{UserID: user.ID}
-		attach_service.UploadFile(&team, &attach, file, "teamSchoolCertificate", true, allowsuffix)
+		attach_service.UploadFile(&user.Team, &attach, file, "teamSchoolCertificate", true, allowsuffix)
 
 		err = ctx.SaveFile(file, fmt.Sprintf("%s/%s", attach.SaveLocation, attach.Filename))
 		if err != nil {
@@ -133,17 +146,8 @@ func UserApply(ctx *fiber.Ctx) error {
 		user.Team.TeamSchoolCertificate = append(user.Team.TeamSchoolCertificate, attach)
 	}
 
-	err = json.Unmarshal([]byte(teamTeacher), &user.Team.TeamTeacher)
-	if err != nil {
-		return utils.RespFail(ctx, "Failed to unmarshal teamTeacher to JSON")
-	}
-	err = json.Unmarshal([]byte(teamMember), &user.Team.TeamMember)
-	if err != nil {
-		return utils.RespFail(ctx, "Failed to unmarshal teamMember to JSON")
-	}
-
-	user.Team.TeamName = teamName
 	user.Save()
+	user.FindOne()
 
 	return utils.RespOK(ctx, user, "User Apply Success")
 }
