@@ -1,6 +1,7 @@
 package attach_service
 
 import (
+	"errors"
 	"fmt"
 	"gameComp-Backend/models"
 	"mime/multipart"
@@ -8,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type AttachError struct {
@@ -69,7 +72,10 @@ func UploadFile(team *models.Team, attach *models.Attach, file *multipart.FileHe
 	return nil
 }
 
-func GetAttachesWithConds(condi models.Attach) *[]models.Attach {
-	dest := condi.FindMany()
-	return dest
+func GetAttachesWithConds(condi models.Attach) (*[]models.Attach, error) {
+	dest, err := condi.FindMany()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dest, nil
+	}
+	return dest, err
 }

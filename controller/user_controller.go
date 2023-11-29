@@ -2,14 +2,17 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gameComp-Backend/models"
 	attach_service "gameComp-Backend/services/attach"
 	user_service "gameComp-Backend/services/user"
 	"gameComp-Backend/utils"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type RegisterSuccessRes struct {
@@ -43,7 +46,13 @@ func UploadGameFile(c *fiber.Ctx) error {
 	user := c.Locals("Auth").(*models.User)
 	user.FindOne()
 
-	team := user_service.GetUserTeam(user)
+	team, err := user_service.GetUserTeam(user)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return utils.RespFail(c, "you need to create team first")
+		}
+		return utils.RespFail(c, "something wrong in server")
+	}
 
 	videoLink := c.FormValue("workVideoLink", "")
 	if videoLink == "" {
@@ -62,10 +71,13 @@ func UploadGameFile(c *fiber.Ctx) error {
 
 	allowsuffix := []string{".pdf"}
 
-	attachPdf := models.Attach{UserID: user.ID}
+	attachPdf := models.Attach{TeamID: user.Team.ID}
 
 	if len(files) > 0 {
-		attach_service.UploadFile(&team, &attachPdf, files[0], "workPdf", false, allowsuffix)
+		err := attach_service.UploadFile(&team, &attachPdf, files[0], "workPdf", false, allowsuffix)
+		if err != nil {
+			return utils.RespFail(c, "Upload PDF Fail")
+		}
 
 		err = c.SaveFile(files[0], fmt.Sprintf("%s/%s", attachPdf.SaveLocation, attachPdf.Filename))
 		if err != nil {
@@ -91,9 +103,9 @@ func UploadGameFile(c *fiber.Ctx) error {
 
 func UserApply(ctx *fiber.Ctx) error {
 	user := ctx.Locals("Auth").(*models.User)
-
+	userTeam := user.Team
 	//the team is not exist
-	if user.Team.ID == 0 {
+	if userTeam.ID == 0 {
 		teamName := ctx.FormValue("teamName", "")
 		if teamName == "" {
 			return utils.RespFail(ctx, "TeamName is empty")
@@ -106,16 +118,24 @@ func UserApply(ctx *fiber.Ctx) error {
 		if teamMember == "" {
 			return utils.RespFail(ctx, "TeamMember is empty")
 		}
-		err := json.Unmarshal([]byte(teamTeacher), &user.Team.TeamTeacher)
+		err := json.Unmarshal([]byte(teamTeacher), &userTeam.TeamTeacher)
 		if err != nil {
 			return utils.RespFail(ctx, "Failed to unmarshal teamTeacher to JSON")
 		}
-		err = json.Unmarshal([]byte(teamMember), &user.Team.TeamMember)
+		err = json.Unmarshal([]byte(teamMember), &userTeam.TeamMember)
 		if err != nil {
 			return utils.RespFail(ctx, "Failed to unmarshal teamMember to JSON")
 		}
-		user.Team.TeamName = teamName
-		user.Team.UUID = uuid.New().String()
+		userTeam.TeamName = teamName
+		userTeam.UUID = uuid.New().String()
+		tx := userTeam.Create()
+		if tx.Error != nil {
+			var dup *mysql.MySQLError
+			if errors.As(tx.Error, &dup) && dup.Number == 1062 {
+				return utils.RespFail(ctx, "TeamName has been used")
+			}
+			return utils.RespFail(ctx, "Create Team Fail")
+		}
 	}
 
 	form, err := ctx.MultipartForm()
@@ -129,14 +149,14 @@ func UserApply(ctx *fiber.Ctx) error {
 	// return utils.RespFail(ctx, "TeamSchoolCertificate is empty")
 	// }
 	if len(files) != 0 {
-		user.Team.IsApplyTeam = true
+		userTeam.IsApplyTeam = true
 	}
 	allowsuffix := []string{".png", ".jpg", ".jpeg", ".pdf"}
 
 	for _, file := range files {
 
-		attach := models.Attach{UserID: user.ID}
-		attach_service.UploadFile(&user.Team, &attach, file, "teamSchoolCertificate", true, allowsuffix)
+		attach := models.Attach{TeamID: userTeam.ID}
+		attach_service.UploadFile(&userTeam, &attach, file, "teamSchoolCertificate", true, allowsuffix)
 
 		err = ctx.SaveFile(file, fmt.Sprintf("%s/%s", attach.SaveLocation, attach.Filename))
 		if err != nil {
@@ -146,14 +166,17 @@ func UserApply(ctx *fiber.Ctx) error {
 		//生成檔案連結
 		url := utils.GetURL()
 		url = url + attach.Filename
-		user.Team.TeamSchoolCertificate = append(user.Team.TeamSchoolCertificate, attach)
+		userTeam.TeamSchoolCertificate = append(userTeam.TeamSchoolCertificate, attach)
 	}
 
-	err = user.Update().Error
+	err = userTeam.Update().Error
 	if err != nil {
 		return utils.RespFail(ctx, "something wrong in server")
 	}
-	user.FindOne()
+	err = user.FindOne().Error
+	if err != nil {
+		return utils.RespFail(ctx, "something wrong in server")
+	}
 
 	return utils.RespOK(ctx, user, "User Apply Success")
 }
@@ -183,36 +206,41 @@ func UpdateUser(c *fiber.Ctx) error {
 
 func GetUserProfile(c *fiber.Ctx) error {
 	user := c.Locals("Auth").(*models.User)
-	user.FindOne()
-
-	attachSchoolCertificate := attach_service.GetAttachesWithConds(models.Attach{UserID: user.ID, Type: "teamSchoolCertificate"})
-	attachWorkPdf := attach_service.GetAttachesWithConds(models.Attach{UserID: user.ID, Type: "workPdf"})
-	team := user_service.GetUserTeam(user)
-
+	userTeam := user.Team
 	var schoolCertificateUrl = []string{}
-	for _, attach := range *attachSchoolCertificate {
-		url := utils.GetURL() + attach.Filename
-		schoolCertificateUrl = append(schoolCertificateUrl, url)
-	}
-
 	var workPdfUrl string
-	for _, attach := range *attachWorkPdf {
-		url := utils.GetURL() + attach.Filename
-		workPdfUrl = url
+	if userTeam.ID != 0 {
+		attachSchoolCertificate, err := attach_service.GetAttachesWithConds(models.Attach{TeamID: user.Team.ID, Type: "teamSchoolCertificate"})
+		if err != nil {
+			return utils.RespFail(c, "something wrong in server")
+		}
+		attachWorkPdf, err := attach_service.GetAttachesWithConds(models.Attach{TeamID: user.Team.ID, Type: "workPdf"})
+		if err != nil {
+			return utils.RespFail(c, "something wrong in server")
+		}
+		for _, attach := range *attachSchoolCertificate {
+			url := utils.GetURL() + attach.Filename
+			schoolCertificateUrl = append(schoolCertificateUrl, url)
+		}
+
+		for _, attach := range *attachWorkPdf {
+			url := utils.GetURL() + attach.Filename
+			workPdfUrl = url
+		}
 	}
 
 	resp := ProfileRes{
 		Email: user.Email,
 		Phone: user.Phone,
 
-		TeamName:              team.TeamName,
-		TeamTeacher:           team.TeamTeacher,
-		TeamMember:            team.TeamMember,
+		TeamName:              userTeam.TeamName,
+		TeamTeacher:           userTeam.TeamTeacher,
+		TeamMember:            userTeam.TeamMember,
 		TeamSchoolCertificate: schoolCertificateUrl,
-		IsApplyTeam:           team.IsApplyTeam,
-		IsUpload:              team.IsUpload,
+		IsApplyTeam:           userTeam.IsApplyTeam,
+		IsUpload:              userTeam.IsUpload,
 
-		WorkVideoLink: team.WorkVideoLink,
+		WorkVideoLink: userTeam.WorkVideoLink,
 		WorkPdf:       workPdfUrl,
 	}
 

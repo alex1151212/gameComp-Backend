@@ -8,7 +8,7 @@ import (
 
 type Attach struct {
 	gorm.Model
-	UserID       uint   `gorm:"index"`
+	TeamID       uint   `gorm:""`
 	Type         string `gorm:"type:varchar(255) NOT NULL;" json:"type"`
 	Path         string `gorm:"type:varchar(255) NOT NULL;" json:"path"`
 	SaveLocation string `gorm:"type:varchar(255) NOT NULL;" json:"saveLocation"`
@@ -30,10 +30,10 @@ func (model *Attach) Delete() *gorm.DB {
 func (model *Attach) FindOne() *gorm.DB {
 	return db.Instance.Where(model).First(&model)
 }
-func (model *Attach) FindMany() *[]Attach {
+func (model *Attach) FindMany() (*[]Attach, error) {
 	var attach []Attach
-	db.Instance.Find(&attach, model)
-	return &attach
+	tx := db.Instance.Where(model).Find(&attach)
+	return &attach, tx.Error
 }
 
 func (model *Attach) Update() *gorm.DB {

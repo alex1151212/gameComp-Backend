@@ -22,10 +22,10 @@ func CreateUser(user *models.User) error {
 	return user.Create().Error
 }
 
-func GetUserTeam(user *models.User) models.Team {
+func GetUserTeam(user *models.User) (models.Team, error) {
 	team := models.Team{
 		UserID: user.ID,
 	}
-	team.FindOne()
-	return team
+	tx := team.FindOne()
+	return team, tx.Error
 }

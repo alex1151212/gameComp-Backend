@@ -14,12 +14,12 @@ type Team struct {
 	TeamName              string        `gorm:"type:varchar(255);not null;unique ;" json:"teamName"`
 	TeamMember            []TeamMember  `gorm:"serializer:json" json:"teamMember"`
 	TeamTeacher           []TeamTeacher `gorm:"serializer:json" json:"teamTeacher"`
-	TeamSchoolCertificate []Attach      `gorm:"foreignKey:UserID ;" json:"teamSchoolCertificate"`
+	TeamSchoolCertificate []Attach      `gorm:"foreignKey:TeamID ;" json:"teamSchoolCertificate"`
 	IsUpload              bool          `gorm:"type:bool;not null;default:false;" json:"isUpload"`
 	IsApplyTeam           bool          `gorm:"type:bool;not null;default:false;" json:"isApplyTeam"`
 
 	WorkVideoLink string `gorm:"type:varchar(255);" json:"workVideoLink"`
-	WorkPdf       Attach `gorm:"foreignKey:UserID;" json:"workPdf"`
+	WorkPdf       Attach `gorm:"foreignKey:TeamID;" json:"workPdf"`
 }
 
 type TeamMember struct {
