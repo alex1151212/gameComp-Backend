@@ -18,16 +18,16 @@ func (c AttachError) Error() string {
 	return fmt.Sprintf("AttachError : %s", c.Message)
 }
 
-func GenerateFileName(owner string, filename string, allowMulti bool) string {
+func GenerateFileName(teamUUID string, filename string, allowMulti bool) string {
 	extension := filepath.Ext(filename)
 	filename = strings.TrimSuffix(filename, extension)
 	filename = strings.Replace(filename, " ", "_", -1)
 	filename = strings.ToLower(filename)
 	timestamp := time.Now().Unix()
 	if allowMulti {
-		filename = fmt.Sprintf("%s_%s_%d%s", owner, filename, timestamp, extension)
+		filename = fmt.Sprintf("%s_%s_%d%s", teamUUID, filename, timestamp, extension)
 	} else {
-		filename = fmt.Sprintf("%s_%s", owner, extension)
+		filename = fmt.Sprintf("%s_Document%s", teamUUID, extension)
 	}
 
 	return filename
@@ -49,7 +49,7 @@ func UploadFile(team *models.Team, attach *models.Attach, file *multipart.FileHe
 	}
 
 	// Generate file name
-	filename := GenerateFileName(team.TeamName, file.Filename, allowMulti)
+	filename := GenerateFileName(team.UUID, file.Filename, allowMulti)
 
 	// Save file
 	saveLocation := os.Getenv("FILE_STORAGE_PATH")

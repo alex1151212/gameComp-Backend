@@ -3,11 +3,13 @@ package models
 import (
 	"gameComp-Backend/db"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Team struct {
 	gorm.Model
+	UUID                  string        `gorm:";not null;unique;" json:"uuid"`
 	UserID                uint          `gorm:";unique " json:"userID"`
 	TeamName              string        `gorm:"type:varchar(255);not null;unique ;" json:"teamName"`
 	TeamMember            []TeamMember  `gorm:"serializer:json" json:"teamMember"`
@@ -34,6 +36,7 @@ func (model *Team) Save() *gorm.DB {
 }
 
 func (model *Team) Create() *gorm.DB {
+	model.UUID = uuid.New().String()
 	return db.Instance.Create(model)
 }
 
