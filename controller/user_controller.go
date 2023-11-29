@@ -81,7 +81,10 @@ func UploadGameFile(c *fiber.Ctx) error {
 		team.IsUpload = true
 	}
 
-	team.Save()
+	err = team.Update().Error
+	if err != nil {
+		return utils.RespFail(c, "something wrong in server")
+	}
 
 	return utils.RespOK(c, team, "Upload PDF Success")
 }
@@ -170,7 +173,7 @@ func UpdateUser(c *fiber.Ctx) error {
 		user.Password = utils.Md5(req.Password)
 	}
 
-	if err := user.Save().Error; err != nil {
+	if err := user.Update().Error; err != nil {
 		fmt.Println(err)
 		return utils.RespFail(c, "Update User Fail")
 	}
