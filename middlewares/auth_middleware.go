@@ -6,6 +6,7 @@ import (
 	"gameComp-Backend/utils"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -36,8 +37,9 @@ type googlereCAPTCHAResponse struct {
 }
 
 func Recaptcha(c *fiber.Ctx) (err error) {
-	secret := c.Get("CaptchaSecret")
+
 	response := c.Get("CaptchaResponse")
+	secret := os.Getenv("RECAPTCHA_SECRET_KEY")
 
 	googleURL := "https://www.google.com/recaptcha/api/siteverify"
 	req, err := http.NewRequest("POST", googleURL, nil)
