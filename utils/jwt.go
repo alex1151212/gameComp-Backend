@@ -67,6 +67,10 @@ func ValidateToken(tokenString string) (*models.User, error) {
 		Email: claims.Email,
 	}
 
-	user.FindOne()
+	tx := user.FindOne()
+	if tx.Error != nil || tx.RowsAffected == 0 {
+		return nil, fmt.Errorf("unexpected signing method token")
+	}
+
 	return &user, nil
 }
