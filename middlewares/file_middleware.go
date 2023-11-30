@@ -1,8 +1,10 @@
 package middleware
 
 import (
+	"gameComp-Backend/models"
 	"gameComp-Backend/utils"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -29,4 +31,22 @@ func FileSizeLimitMiddleware(maxSizeMB int64) fiber.Handler {
 		// Continue with next middleware
 		return c.Next()
 	}
+}
+
+func FilePermissionMiddleware(c *fiber.Ctx) error {
+	auth := c.Locals("Auth")
+	if auth == nil {
+		return utils.RespUnauthorized(c, "Unauthorized")
+	}
+	user, ok := auth.(*models.User)
+	if !ok {
+		return utils.RespUnauthorized(c, "Unauthorized")
+	}
+	path := c.Path()
+	if path != "" {
+		if !strings.Contains(path, user.Team.UUID) {
+			return utils.RespUnauthorized(c, "Unauthorized")
+		}
+	}
+	return c.Next()
 }

@@ -41,18 +41,15 @@ func StartServer() {
 	host := os.Getenv("SERVER_HOST")
 	port := os.Getenv("SERVER_PORT")
 
-	staticPath := os.Getenv("FILE_STORAGE_PATH")
-	fmt.Println(staticPath)
-	app.Static("/", staticPath)
-
 	{
 		AuthRouter := app.Group("/auth")
 		AuthRouter.Use(middleware.AuthMiddleware)
-		middleware.FileSizeLimitMiddleware(100)
 		AuthRouter.Get("/profile", controller.GetUserProfile)
 
 		AuthRouter.Use(middleware.Recaptcha)
 		AuthRouter.Put("/user", controller.UpdateUser)
+
+		AuthRouter.Use(middleware.FileSizeLimitMiddleware(100))
 		AuthRouter.Post("/upload", controller.UploadGameFile)
 		AuthRouter.Post("/team", controller.UserApply)
 	}
@@ -64,6 +61,14 @@ func StartServer() {
 		UserRouter.Use(middleware.Recaptcha)
 		UserRouter.Post("/createUser", controller.Register)
 		UserRouter.Post("/login", controller.Login)
+	}
+
+	{
+		staticPath := os.Getenv("FILE_STORAGE_PATH")
+		static := app.Group("/")
+		static.Use(middleware.AuthMiddleware)
+		static.Use(middleware.FilePermissionMiddleware)
+		static.Static("/", staticPath, fiber.Static{})
 	}
 
 	// initUserRoute()
