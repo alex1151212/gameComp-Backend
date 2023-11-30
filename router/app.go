@@ -42,19 +42,6 @@ func StartServer() {
 	port := os.Getenv("SERVER_PORT")
 
 	{
-		AuthRouter := app.Group("/auth")
-		AuthRouter.Use(middleware.AuthMiddleware)
-		AuthRouter.Get("/profile", controller.GetUserProfile)
-
-		AuthRouter.Use(middleware.Recaptcha)
-		AuthRouter.Put("/user", controller.UpdateUser)
-
-		AuthRouter.Use(middleware.FileSizeLimitMiddleware(100))
-		AuthRouter.Post("/upload", controller.UploadGameFile)
-		AuthRouter.Post("/team", controller.UserApply)
-	}
-
-	{
 		staticPath := os.Getenv("FILE_STORAGE_PATH")
 		static := app.Group("/")
 		// static.Use(middleware.AuthMiddleware)
@@ -63,10 +50,23 @@ func StartServer() {
 	}
 
 	{
+		AuthRouter := app.Group("/auth")
+		AuthRouter.Use(middleware.AuthMiddleware)
+		AuthRouter.Get("/profile", controller.GetUserProfile)
+
+		AuthRouter.Use(middleware.Recaptcha("v2"))
+		AuthRouter.Put("/user", controller.UpdateUser)
+
+		AuthRouter.Use(middleware.FileSizeLimitMiddleware(100))
+		AuthRouter.Post("/upload", controller.UploadGameFile)
+		AuthRouter.Post("/team", controller.UserApply)
+	}
+
+	{
 		UserRouter := app.Group("")
 		UserRouter.Post("/recaptcha", controller.GoogleVaild)
 
-		UserRouter.Use(middleware.Recaptcha)
+		UserRouter.Use(middleware.Recaptcha("v2"))
 		UserRouter.Post("/createUser", controller.Register)
 		UserRouter.Post("/login", controller.Login)
 	}
