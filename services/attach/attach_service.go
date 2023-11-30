@@ -36,6 +36,10 @@ func GenerateFileName(teamUUID string, filename string, allowMulti bool) string 
 	return filename
 }
 
+func GenerateDir(teamUUID string) string {
+	return fmt.Sprintf("%s/%s", os.Getenv("FILE_STORAGE_PATH"), teamUUID)
+}
+
 func UploadFile(team *models.Team, attach *models.Attach, file *multipart.FileHeader, attachType string, allowMulti bool, allowsuffix []string) error {
 	// Check if the file type is allowed
 	isAllowed := false
@@ -62,7 +66,8 @@ func UploadFile(team *models.Team, attach *models.Attach, file *multipart.FileHe
 	if saveLocation[len(saveLocation)-1] == '/' {
 		saveLocation = saveLocation[0 : len(saveLocation)-2]
 	}
-
+	saveLocation = fmt.Sprintf("%s/%s", saveLocation, team.UUID)
+	attach.Path = fmt.Sprintf("%s/", team.UUID)
 	attach.Filename = filename
 	attach.SaveLocation = saveLocation
 	attach.Type = attachType

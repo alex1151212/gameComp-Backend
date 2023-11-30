@@ -8,6 +8,7 @@ import (
 	attach_service "gameComp-Backend/services/attach"
 	user_service "gameComp-Backend/services/user"
 	"gameComp-Backend/utils"
+	"os"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v2"
@@ -84,10 +85,6 @@ func UploadGameFile(c *fiber.Ctx) error {
 			return utils.RespFail(c, "Upload PDF Fail")
 		}
 
-		//生成檔案連結
-		url := utils.GetURL()
-		url = url + attachPdf.Filename
-
 		team.WorkPdf = attachPdf
 		team.WorkVideoLink = videoLink
 		team.IsUpload = true
@@ -137,6 +134,11 @@ func UserApply(ctx *fiber.Ctx) error {
 			}
 			return utils.RespFail(ctx, "Create Team Fail")
 		}
+		dir := attach_service.GenerateDir(userTeam.UUID)
+		err = os.Mkdir(dir, 0644)
+		if err != nil {
+			return utils.RespFail(ctx, "Create Team Fail")
+		}
 	}
 
 	form, err := ctx.MultipartForm()
@@ -164,9 +166,6 @@ func UserApply(ctx *fiber.Ctx) error {
 			return utils.RespFail(ctx, "Upload ID Photo Fail")
 		}
 
-		//生成檔案連結
-		url := utils.GetURL()
-		url = url + attach.Filename
 		userTeam.TeamSchoolCertificate = append(userTeam.TeamSchoolCertificate, attach)
 	}
 
@@ -220,12 +219,14 @@ func GetUserProfile(c *fiber.Ctx) error {
 			return utils.RespFail(c, "something wrong in server")
 		}
 		for _, attach := range *attachSchoolCertificate {
-			url := utils.GetURL() + attach.Filename
+			url := utils.GetURL()
+			url = url + attach.Path + attach.Filename
 			schoolCertificateUrl = append(schoolCertificateUrl, url)
 		}
 
 		for _, attach := range *attachWorkPdf {
-			url := utils.GetURL() + attach.Filename
+			url := utils.GetURL()
+			url = url + attach.Path + attach.Filename
 			workPdfUrl = url
 		}
 	}
