@@ -31,9 +31,12 @@ type reCAPTCHARequest struct {
 	Secret   string `json:"secret"`
 	Response string `json:"response"`
 }
-type reCAPTCHAResponse struct {
+type reCAPTCHAv3Response struct {
 	Success bool    `json:"success"`
 	Score   float32 `json:"score"`
+}
+type reCAPTCHAv2Response struct {
+	Success bool `json:"success"`
 }
 
 // defualt use V3
@@ -65,18 +68,21 @@ func Recaptcha(mode string) fiber.Handler {
 			return utils.RespImRobot(c)
 		}
 
-		googlereCAPTCHAResponse := new(reCAPTCHAResponse)
-		if err := json.Unmarshal(body, &googlereCAPTCHAResponse); err != nil {
-			return utils.RespImRobot(c)
-		}
-
 		switch mode {
 		case "v2":
 		case "V2":
+			googlereCAPTCHAResponse := new(reCAPTCHAv2Response)
+			if err := json.Unmarshal(body, &googlereCAPTCHAResponse); err != nil {
+				return utils.RespImRobot(c)
+			}
 			if !googlereCAPTCHAResponse.Success {
 				return utils.RespImRobot(c)
 			}
 		default:
+			googlereCAPTCHAResponse := new(reCAPTCHAv3Response)
+			if err := json.Unmarshal(body, &googlereCAPTCHAResponse); err != nil {
+				return utils.RespImRobot(c)
+			}
 			if !googlereCAPTCHAResponse.Success || googlereCAPTCHAResponse.Score < 0.5 {
 				return utils.RespImRobot(c)
 			}
