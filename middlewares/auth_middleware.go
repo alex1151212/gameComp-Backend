@@ -69,8 +69,7 @@ func Recaptcha(mode string) fiber.Handler {
 		}
 
 		switch mode {
-		case "v2":
-		case "V2":
+		case "v2", "V2":
 			googlereCAPTCHAResponse := new(reCAPTCHAv2Response)
 			if err := json.Unmarshal(body, &googlereCAPTCHAResponse); err != nil {
 				return utils.RespImRobot(c)
