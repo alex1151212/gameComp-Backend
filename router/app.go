@@ -55,20 +55,20 @@ func StartServer() {
 	}
 
 	{
+		staticPath := os.Getenv("FILE_STORAGE_PATH")
+		static := app.Group("/")
+		// static.Use(middleware.AuthMiddleware)
+		// static.Use(middleware.FilePermissionMiddleware)
+		static.Static("/", staticPath, fiber.Static{})
+	}
+
+	{
 		UserRouter := app.Group("")
 		UserRouter.Post("/recaptcha", controller.GoogleVaild)
 
 		UserRouter.Use(middleware.Recaptcha)
 		UserRouter.Post("/createUser", controller.Register)
 		UserRouter.Post("/login", controller.Login)
-	}
-
-	{
-		staticPath := os.Getenv("FILE_STORAGE_PATH")
-		static := app.Group("/")
-		static.Use(middleware.AuthMiddleware)
-		static.Use(middleware.FilePermissionMiddleware)
-		static.Static("/", staticPath, fiber.Static{})
 	}
 
 	// initUserRoute()
